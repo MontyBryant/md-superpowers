@@ -7,23 +7,26 @@ Markdown superpowers for knowledge gardens. A Claude Cowork plugin for web clipp
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
 | `/clip` | "clip this", "save this page", "defuddle", paste a URL | Fetches a web page via Defuddle, strips ads/nav/chrome, saves clean markdown with YAML frontmatter |
+| `/pdf-convert` | "convert pdf", "pdf to markdown", "docling", upload a PDF | Converts PDFs to clean markdown via Docling with automated post-processing and quality review |
 
 ## Dependencies
 
-- **Node.js** (available in Cowork sandbox)
-- **defuddle** npm package (auto-installed on first use each session)
+All dependencies use lazy installation — they're only installed when the relevant skill is first invoked in a session, not on startup.
+
+| Skill | Dependency | Install time | Method |
+|-------|-----------|-------------|--------|
+| `/clip` | defuddle (npm) | ~2s | `npm install -g defuddle` |
+| `/pdf-convert` | docling (pip) | ~30-60s | `pip install docling` |
+
+Both require **Node.js** and **Python**, which are available in the Cowork sandbox.
 
 ## Output
 
-Clipped files include YAML frontmatter (title, source, author, date, word count) followed by clean article markdown. Files are saved to contextually appropriate locations in the knowledge garden.
+Both skills produce clean markdown with contextually appropriate file placement in the knowledge garden. `/clip` adds YAML frontmatter (title, source, author, date, word count). `/pdf-convert` produces markdown with referenced images and runs automated post-processing and verification.
 
 ## Roadmap
 
-Future skills to explore for this plugin. Each builds on the core clipping workflow to cover more of the content ingestion pipeline.
-
-### pdf-convert
-
-Convert PDFs to clean, searchable markdown using Docling (IBM's PDF parser) plus custom post-processing and verification scripts. Would use lazy dependency installation — `pip install docling` runs only when the skill is first invoked in a session, not on startup. Heavier than defuddle (~30-60s install) but only sessions that actually need PDF conversion pay the cost. The existing Claude Code skill and scripts (`tools/pdf_postprocess.py`, `tools/pdf_verify.py`) provide the foundation.
+Future skills to explore. Each builds on the core workflow to cover more of the content ingestion pipeline.
 
 ### process-inbox
 
