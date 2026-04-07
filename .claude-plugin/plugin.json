@@ -1,0 +1,11 @@
+{
+  "name": "md-superpowers",
+  "version": "0.1.0",
+  "description": "Markdown superpowers for knowledge gardens. Web clipping, content ingestion, and reading management — powered by Defuddle.",
+  "author": {
+    "name": "Monty Merlin"
+  },
+  "repository": "https://github.com/montymerlin/md-superpowers",
+  "license": "MIT",
+  "keywords": ["web-clipper", "markdown", "defuddle", "reading", "knowledge-management", "content-ingestion"]
+}
