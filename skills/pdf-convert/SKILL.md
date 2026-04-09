@@ -1,17 +1,36 @@
 ---
 name: pdf-convert
 description: >
-  Convert PDF documents to clean, searchable markdown using Docling with
-  automated post-processing and quality review. Use when the user asks to
-  "convert pdf", "pdf to markdown", "process pdf", "convert this document",
-  "docling", "pdf conversion", "add reference pdf", "extract text from pdf",
-  or provides a PDF they want turned into markdown. Also trigger when the
-  user uploads a PDF and wants its content as markdown, or asks to batch
-  convert multiple PDFs. Note: this skill is for PDF-to-markdown conversion,
-  not for creating, merging, or filling PDFs.
+  DEPRECATED in v0.3 — use the `convert` skill instead. Convert PDF
+  documents to clean, searchable markdown using Docling with automated
+  post-processing. Use when the user asks to "convert pdf", "pdf to
+  markdown", "process pdf", "convert this document", "docling", "pdf
+  conversion", "add reference pdf", "extract text from pdf", or provides
+  a PDF they want turned into markdown. Note: this skill is for PDF-to-
+  markdown conversion, not for creating, merging, or filling PDFs.
 ---
 
-# PDF-to-Markdown Conversion
+> ⚠️ **Deprecated in v0.3 — use the `convert` skill instead.**
+>
+> `pdf-convert` was a docling-first PDF-to-markdown converter that assumed
+> docling would always be available and fell over when it wasn't (notably
+> in the Cowork sandbox where docling OOMs on any real PDF due to RAM
+> constraints). The newer `convert` skill handles any document type (PDF,
+> docx, pptx, epub, html, image), adaptively picks the right engine for
+> the environment, and includes the full enrichment pipeline that
+> `pdf-convert` was missing — diagrams → mermaid, comparisons → tables,
+> structured frontmatter, per-recipe success criteria, and more.
+>
+> **Migration:** anywhere you would have invoked `pdf-convert`, invoke
+> `convert` instead. Same entry point, better output, broader input
+> support. See `skills/convert/SKILL.md` for the full design.
+>
+> This skill is kept on disk for one release cycle so existing muscle
+> memory still works. It will be removed in v0.4. The `pdf_postprocess.py`
+> and `pdf_verify.py` helper scripts remain available and are referenced
+> by the new skill's knowledge bank.
+
+# PDF-to-Markdown Conversion (legacy)
 
 Convert PDF documents to clean, searchable markdown using Docling (IBM-backed, MIT license), automated post-processing, and LLM quality review.
 

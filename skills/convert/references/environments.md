@@ -1,0 +1,166 @@
+# Environment detection and engine routing
+
+Probe detects the environment once per conversion. The results drive engine selection and degradation. This guide covers what to probe, how to interpret results, and the per-recipe engine preference lists with fallback rules.
+
+## The environment profile
+
+Probe produces a small profile with these fields:
+
+```
+environment: cowork-sandbox | claude-code-macos | claude-code-linux | unknown
+ram_gb: <float>                    # soft probe, rounded
+disk_free_gb: <float>              # in the working directory
+network: full | limited | none     # can we pip install on demand?
+tools:
+  pymupdf: ✓ | ✗
+  pandoc: ✓ | ✗
+  docling: ✓ | ✗ (oom-risk if ram<6)
+  marker: ✓ | ✗
+  calibre: ✓ | ✗
+  tesseract: ✓ | ✗
+  rapidocr: ✓ | ✗
+  pdftotext: ✓ | ✗
+builtin_skills:
+  pdf: ✓ | ✗
+  docx: ✓ | ✗
+  pptx: ✓ | ✗
+  xlsx: ✓ | ✗
+```
+
+## How to detect each field
+
+### Environment type
+- Check `uname -a` for platform (Linux vs Darwin)
+- Check for Cowork-specific env markers (path contains `/sessions/`, `.remote-plugins/` structure)
+- Fallback: `unknown`
+
+### RAM
+- Linux: `free -m` or read `/proc/meminfo` (MemTotal)
+- macOS: `sysctl -n hw.memsize`
+- Convert to GB, round to 1 decimal
+- Soft probe — if it fails, assume 4GB (conservative default)
+
+### Disk
+- `df -h <working-dir>` → parse the Available column
+- Convert to GB
+
+### Network
+- Attempt `pip install --dry-run <anything>` or a quick `curl -s --head https://pypi.org`
+- If it times out or fails: `limited` or `none`
+- In Cowork sandbox, usually `limited` (some packages pre-installed, no fresh installs)
+
+### Tools
+- `which <tool>` for each
+- For Python tools: `python -c "import <tool>"` with `--break-system-packages` awareness
+- Record the version if cheap to get (`<tool> --version` when it's fast)
+
+**Special case — docling OOM risk:** even if docling is installed, flag it as unavailable if `ram_gb < 6`. Docling needs substantial memory and will be SIGKILL'd in tight environments. The Cowork sandbox with 3.8GB RAM is the motivating case. Record this as `docling: ✗ (oom-risk)` in the profile.
+
+### Built-in skills
+- Check whether the skill is listed in the active skills. Built-in skills from Anthropic (`pdf`, `docx`, `pptx`, `xlsx`) are almost always available when running in Claude Code or Cowork.
+
+## Engine preference lists
+
+Each recipe declares an ordered preference list. Probe picks the highest-preference engine that's viable in the current environment.
+
+### For PDF inputs
+
+**Quality order (best → worst):**
+
+1. **Built-in Anthropic `pdf` skill** — always first choice when available. Maintained by the people who trained the model. Handles layout, figures, tables, OCR, citations.
+2. **marker** — Claude Code only. Best ML-based quality for academic papers and complex layouts. Needs GPU or beefy CPU.
+3. **docling** — Claude Code only (when RAM ≥6GB). IBM's tool; good quality but heavy. Known to OOM in Cowork sandbox.
+4. **pymupdf + post-processing** — universal fallback. Works in any environment including Cowork. Produces decent text extraction without layout analysis.
+5. **pdftotext + pandoc** — last resort. Lowest quality but very fast and available almost everywhere.
+
+### For docx inputs
+
+1. **Built-in `docx` skill** — first choice
+2. **pandoc** — reliable, widely available
+3. **mammoth (Python lib)** — fallback for when pandoc is missing
+
+### For pptx inputs
+
+1. **Built-in `pptx` skill** — first choice
+2. **python-pptx + pymupdf (for per-slide renders)** — fallback
+
+### For epub inputs
+
+1. **calibre (`ebook-convert`)** — gold standard
+2. **pandoc** — fallback
+3. **Built-in `pdf` skill** after converting epub→PDF — last resort
+
+### For html inputs
+
+Note: for URLs, use the `clip` skill instead. For local .html files:
+1. **pandoc** — first choice
+2. **defuddle** (if available) — fallback for messy HTML
+3. **beautifulsoup + custom extraction** — last resort
+
+### For images (single-page scans, screenshots)
+
+1. **Built-in `pdf` skill** (wrap in a PDF first)
+2. **tesseract** → markdown
+3. **rapidocr** → markdown
+
+## Graceful degradation rules
+
+The degradation rule is simple: if the preferred engine fails or is unavailable, drop to the next one **without asking the user**. Only escalate if all viable engines have been tried and output still doesn't meet the recipe's success criteria.
+
+**What counts as "engine failure":**
+- Tool not installed or not on PATH
+- Tool installed but crashes on this input (segfault, exception, OOM)
+- Tool produces output but Verify phase rejects it (e.g. frontmatter can't be populated, asset references don't resolve, content is obviously garbled)
+
+**How to degrade:**
+1. Note the failure in your internal working state (don't show to user yet)
+2. Move to the next engine in the preference list
+3. If that engine succeeds, record `extracted_via: <engine>` AND `quality: degraded` in frontmatter (so downstream knows this could be re-converted later with a better engine)
+4. Proceed normally with Enrich and Verify
+5. In your final response, mention which engine ran and whether quality was degraded
+
+**When to surface the degradation to the user:**
+- Only if Verify ultimately rejects the output even after trying all engines
+- Or if the degradation is severe enough to affect the recipe's success criteria (e.g. scanned doc with poor OCR, academic paper where 2-column bleed couldn't be fixed)
+
+**What to never do:**
+- Never silently produce garbage. If all engines fail, say so explicitly.
+- Never skip Verify to "save time" on a degraded output.
+- Never pretend the degraded engine's output is full quality — `quality: degraded` is a real field and matters for downstream re-conversion.
+
+## Loud-failure cases
+
+Two situations where Probe should stop and escalate immediately rather than degrade:
+
+**1. OCR required but not viable.** Source is a scanned document (no text layer), no OCR engine is available in the environment. Stop. Tell the user:
+- What the source is
+- Why OCR is needed
+- What engines would work (`pdf` skill, tesseract, rapidocr)
+- Options: defer the conversion, run in a different environment, ask them to pre-OCR, or proceed with no-text output (not recommended)
+
+**2. No viable engine at all.** Every engine in the preference list has failed or is missing. Don't produce output. Tell the user what was tried and what's missing.
+
+These are the only two loud-failure cases. Everything else — suboptimal quality, missing enrichment because the engine doesn't support a feature, partial extraction — gets a `quality: degraded` flag and proceeds.
+
+## Probe output example
+
+```
+## Probe result
+
+Source: Kwaxala Overview 2026.pdf
+  - 25-page PDF, widescreen (1920×1080 aspect)
+  - Low text density (~80 words/page average)
+  - High image density (25 significant visuals)
+  - No DOI, no ISBN, no academic metadata
+
+Environment: cowork-sandbox
+  - RAM: 3.8 GB (tight)
+  - Disk: 9.6 GB free
+  - Tools: pymupdf ✓, pandoc ✓, docling ✗ (oom-risk), marker ✗
+  - Built-in skills: pdf ✓, docx ✓, pptx ✓
+
+Recipe match: slide-deck-visual (score 9)
+Engine selected: pymupdf (pdf skill not needed for slide renders; docling skipped due to OOM risk)
+Quality expectation: full (pymupdf is the right tool for per-slide rendering anyway)
+Budget: standard
+```
