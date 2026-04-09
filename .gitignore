@@ -1,0 +1,6 @@
+# User-local Claude Code settings (per-machine permissions, MCP enablement)
+.claude/settings.local.json
+
+# OS files
+.DS_Store
+Thumbs.db
