@@ -4,7 +4,9 @@ A narrative record of how this plugin evolves. Updated after significant work se
 
 ---
 
-## 2026-04-10 — New `transcribe` skill
+## 2026-04-10 — v0.4: `transcribe` skill + `pdf-convert` removal
+
+Removed the deprecated `pdf-convert` skill after one release cycle of deprecation (deprecated in v0.3, scheduled for removal in v0.4). Its knowledge bank (19 known issues from 16 reference PDFs) and helper scripts (`pdf_postprocess.py`, `pdf_verify.py`) were migrated to `skills/convert/references/` so the `convert` skill can still reference them.
 
 Added the `transcribe` skill for converting audio and video to structured, speaker-labelled markdown with adaptive vocabulary correction. The skill is decomposed into library modules and runners, supporting three pathways: P1 (YouTube native + Whisper API fallback, fast), P2 (WhisperX + pyannote diarization, local + high-quality), and P3 (cloud API services, stub). Vocabulary cascade uses XDG conventions for user-extensible word lists, with adaptive promotion from `custom/` to `standard/` based on frequency. Host-mode detection enables portable operation across Claude Code, Cursor, and Cowork without hardcoded paths. Implementation spans ~4400 lines of Python across 15 files (lib modules, runners, CLI entry points) plus 10 reference documents (environment setup, playbooks, anti-patterns, P1/P2/P3 pathway details, vocabulary handling, speaker identification, output format).
 

@@ -22,7 +22,7 @@ Items likely to be addressed in the next development cycle.
 
 - **Cross-skill convert↔transcribe handoff** — When a user provides a video file that's encoded as MP4/WebM with audio, detect this and suggest transcribing the audio track instead of trying to convert the whole file. Conversely, when transcribing a presentation video, suggest converting the visible deck (if available separately) to structured slides. This is a "would you like to..." suggestion, not automatic. `status: idea`
 
-- **Remove `pdf-convert` in v0.4** — After one release cycle of deprecation, remove the legacy skill. Merge its `knowledge-bank.md` and helper scripts (`pdf_postprocess.py`, `pdf_verify.py`) into `skills/convert/references/` as appropriate. `status: idea`
+- **~~Remove `pdf-convert` in v0.4~~** — Done. Removed in v0.4. Knowledge bank and helper scripts migrated to `skills/convert/references/`. `status: done`
 
 - **Publish v0.3.1 to GitHub** — Tag and release v0.3.1 with the `convert` skill, the portability pass (rename to `mdpowers`, COMPATIBILITY.md, clip bug fix), updated scaffold files, and a CHANGELOG entry. `status: idea`
 

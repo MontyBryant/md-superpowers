@@ -9,7 +9,7 @@ Markdown superpowers for knowledge gardens. A host-agnostic Claude Agent SDK plu
 | `/convert` | "convert", "pdf to markdown", "docx to markdown", "pptx to markdown", "slide deck to markdown", upload a document | Adaptively converts any document (PDF, docx, pptx, epub, html, image) into structured, AI-readable markdown — with diagrams → mermaid, comparisons → tables, per-recipe enrichment, and graceful engine fallback |
 | `/clip` | "clip this", "save this page", "defuddle", paste a URL | Fetches a web page via Defuddle, strips ads/nav/chrome, saves clean markdown with YAML frontmatter |
 | `/transcribe` | "transcribe this", "transcribe video", "transcribe youtube", "transcribe audio", upload audio/video | Transcribes audio and video to structured, speaker-labelled markdown with adaptive vocabulary correction. Supports YouTube (native subs + Whisper API fallback), local files (WhisperX + pyannote diarization), and cloud API services (stub). |
-| `/pdf-convert` | *(deprecated)* | **Deprecated in v0.3.** Use `/convert` instead. Will be removed in v0.4. |
+| `/pdf-convert` | *(removed)* | **Removed in v0.4.** Use `/convert` instead. Knowledge bank and helper scripts migrated to `convert/references/`. |
 
 ## What makes `convert` different
 
@@ -79,7 +79,7 @@ mdpowers-plugin/
     ├── convert/                    # adaptive document-to-markdown (v0.3)
     ├── clip/                       # web-page-to-markdown via Defuddle
     ├── transcribe/                 # audio/video to markdown + speaker labels + vocabulary
-    └── pdf-convert/                # DEPRECATED — removed in v0.4
+    └── (pdf-convert removed in v0.4; assets migrated to convert/references/)
 ```
 
 ## Design Principles
@@ -102,7 +102,7 @@ The full rationale for each principle is in [`CLAUDE.md`](CLAUDE.md).
 See [ROADMAP.md](ROADMAP.md) for planned work and future ideas. Highlights:
 
 - Validating `convert` against real documents across all seven recipe archetypes
-- Removing the deprecated `pdf-convert` skill in v0.4
+- `pdf-convert` removed in v0.4; knowledge bank migrated to `convert/references/`
 - New playbooks for equation handling (P7), citation parsing (P8), figure-caption grounding (P9)
 - New recipes for annual reports and legal contracts
 - `process-inbox` and `research-clip` skills for tighter integration with knowledge garden workflows

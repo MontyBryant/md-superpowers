@@ -178,7 +178,7 @@ If you detect a `CLAUDE.md` in the working tree, read it and honour any conventi
 
 - **`mdpowers:convert`** — sibling skill for documents (PDF, docx, pptx → markdown). If the user has a document, use convert. If they have audio/video, use transcribe.
 - **`mdpowers:clip`** — sibling skill for web pages → markdown. If the source is a URL that isn't a video, use clip.
-- **Deprecated:** `mdpowers:pdf-convert` — replaced by convert. Do not use.
+- **Removed:** `mdpowers:pdf-convert` — removed in v0.4, replaced by convert. Knowledge bank migrated to `convert/references/`.
 - **Superpowers skills** (if installed) — `two-stage-review` for prose quality review after transcription, `brainstorming` for unusual transcription challenges. Optional siblings, not hard dependencies.
 
 ## References

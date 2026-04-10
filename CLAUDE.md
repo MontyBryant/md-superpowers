@@ -103,7 +103,7 @@ mdpowers-plugin/
 - Hardcode paths (session slugs, absolute home paths, Cowork mount points) — use `${CLAUDE_PLUGIN_ROOT}`, env vars, or runtime probes
 - Hardcode assumptions about environment (RAM, installed tools, host type) — probe at runtime
 - Write helper scripts when an existing library or built-in skill would work
-- Remove the deprecated `pdf-convert` skill until v0.4 (give users a migration window)
+- Reference the removed `pdf-convert` skill — it was removed in v0.4, assets migrated to `convert/references/`
 - Duplicate content between files — reference instead
 - Bundle heavy dependencies at install time — use lazy loading on first skill invocation
 - Brand the plugin to a single host ("Cowork plugin", "Claude Code plugin") — it's host-agnostic
@@ -140,11 +140,9 @@ Web-page-to-markdown via Defuddle. Strips ads/nav/chrome, saves clean markdown w
 
 Entry point: `skills/clip/SKILL.md`.
 
-### pdf-convert (DEPRECATED, v0.2)
+### pdf-convert (REMOVED in v0.4)
 
-Docling-first PDF converter. Deprecated in v0.3, will be removed in v0.4. Use `convert` instead.
-
-Entry point: `skills/pdf-convert/SKILL.md` (contains deprecation notice).
+Docling-first PDF converter. Deprecated in v0.3, removed in v0.4. Knowledge bank and helper scripts (`pdf_postprocess.py`, `pdf_verify.py`) migrated to `skills/convert/references/`. Use `convert` for all document-to-markdown work.
 
 ## References
 

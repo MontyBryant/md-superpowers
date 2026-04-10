@@ -146,5 +146,5 @@ Commons-awareness is a soft detection — when it fires, **name what's being app
 
 - **Built-in Anthropic skills** — `pdf`, `docx`, `pptx`, `xlsx`. Always preferred as engines when they cover the need. `convert` is the orchestrator; these are the workers. Availability varies by host — see `references/environments.md` and the top-level `COMPATIBILITY.md` for the full matrix.
 - **`mdpowers:clip`** — for web-page-to-markdown. `convert` and `clip` are siblings; if the source is a URL, use `clip`; if it's a file, use `convert`.
-- **Deprecated:** `mdpowers:pdf-convert` — the old docling-first PDF converter. This skill (`convert`) replaces it. If you find yourself reaching for `pdf-convert`, use `convert` instead.
+- **Removed:** `mdpowers:pdf-convert` — the old docling-first PDF converter, removed in v0.4. Its knowledge bank and helper scripts now live in `references/knowledge-bank.md`, `references/pdf_postprocess.py`, and `references/pdf_verify.py`.
 - **Superpowers skills** (if installed) — `two-stage-review` for prose quality review after conversion, `brainstorming` for genuinely novel sources where Probe can't match any recipe. Namespace varies by how the user installs the Superpowers plugin (`superpowers:...` or `superpowers-cowork:...`). These are optional siblings, not hard dependencies.
