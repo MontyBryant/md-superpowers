@@ -32,6 +32,12 @@ Items likely to be addressed in the next development cycle.
 
 Ideas worth evaluating when the time is right. No commitment, but worth thinking about.
 
+- **Source resolution cascade skill** — Formalise the OA API cascade (Unpaywall → Semantic Scholar → EuropePMC → CrossRef → Wayback → WebFetch) as a dedicated resolution step or sub-skill that `clip` can invoke whenever a URL is academic or DOI-bearing. Goal: make the plugin "resilient by default" against paywalls and bot-blocks, not just in the failure-handling docs but as executable first-class logic. Would need a DOI detection heuristic and per-host API rate-limit management. `status: idea`
+
+- **Abstract-level capture as first-class output tier** — Currently `capture_failed: true` is binary: either full text or nothing. A middle tier — abstract + metadata, clearly flagged — would be more useful for academic sources. Semantic Scholar returns abstracts even for closed-access papers; CrossRef returns bibliographic metadata for almost everything. A `capture_tier: abstract` field in frontmatter (alongside `capture_failed: false`) would let downstream work distinguish "full text captured", "abstract only", and "stub/failed". `status: idea`
+
+- **Sci-Hub integration (legal-context only)** — Sci-Hub maintains a community mirror of academic papers that are otherwise paywalled. In contexts where Sci-Hub access is legally authorised (e.g. researchers in jurisdictions that permit it, or when working with papers already in personal possession under first-sale doctrine), adding a Sci-Hub lookup step to the OA cascade would significantly increase the hit rate for academic paper capture. Implementation would require: explicit user opt-in (never default), jurisdiction awareness or user acknowledgement, and a clear note in frontmatter that the source was retrieved via Sci-Hub. The legal status of Sci-Hub access varies by jurisdiction — this feature must be documented as requiring user understanding of their local copyright law. `status: parked`
+
 - **Equation handling playbook (P7)** — Preserve LaTeX / MathML from academic sources. Matters for Frontiers, PNAS, and other math-heavy venues. Would extend the `academic-paper` recipe. `status: idea`
 
 - **Citation parsing playbook (P8)** — Extract CSL-JSON from references sections so citations become queryable. Useful for the `academic-paper` and `book-longform` recipes and for cross-document reconciliation. `status: idea`

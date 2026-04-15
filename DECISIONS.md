@@ -6,6 +6,49 @@ Architectural decisions for the mdpowers plugin, logged in a lightweight ADR (Ar
 
 ---
 
+## Decision 008: OA API cascade as the standard resolution path for academic paper URLs
+
+**Status:** Accepted
+**Date:** 2026-04-15
+
+**Context:** During an EthicHub research clipping pass, several academic papers were unreachable via standard defuddle + WebFetch because of paywalls (Sage, Elsevier), Cloudflare blocking (SSRN), and bot-blocking (Medium). The session discovered that a layered cascade of free scholarly APIs — Unpaywall, Semantic Scholar, EuropePMC, CrossRef — can recover legal full-text PDFs or at minimum useful metadata/abstracts for most closed-access papers, without needing paid library access or policy-grey tools.
+
+Key findings from that session:
+- Unpaywall reliably finds legal OA PDFs when `is_oa: true` and `url_for_pdf` is non-null
+- Semantic Scholar returns abstracts for nearly all papers regardless of access status — the abstract field is an important graceful degradation
+- SSRN is effectively inaccessible from all automated tools in 2026 due to Cloudflare protection; even when Unpaywall reports an SSRN OA location, `url_for_pdf` is typically null
+- Medium's standard `medium.com/<publication>/<slug>` URLs respond to WebFetch even when defuddle returns 403; custom subdomains do not
+- A stub file with abstract + metadata is meaningfully more useful than an empty `capture_failed: true` file — it supports in-text citation of conclusions even without full-text
+
+**Decision:** Codify the OA API cascade as the standard resolution path in `clip/SKILL.md`:
+
+1. Unpaywall (DOI → is_oa + url_for_pdf)
+2. Semantic Scholar (openAccessPdf.url + abstract fallback)
+3. EuropePMC (PMC full-text mirror, strongest for life sciences)
+4. CrossRef (bibliographic metadata + license + links)
+
+And update the 403-blocked source fallback order:
+1. WebFetch (effective for standard Medium URLs; skip for custom subdomains)
+2. Wayback Machine snapshot
+3. capture_failed
+
+SSRN documented explicitly as an exception: all automated access blocked, capture_failed is the correct outcome.
+
+**Consequences:**
+- Clip skill now has a documented, executable path for academic paper rescue rather than leaving it to per-session improvisation
+- The "abstract as graceful degradation" tier is explicitly encouraged, making partial captures first-class instead of failures
+- Medium WebFetch works around the most common 403 case without needing Wayback
+- SSRN's blocking status is documented so future sessions don't waste time retrying
+- Adds one new section and several rows to the clip failure handling docs — modest cognitive overhead, high practical value
+
+**Alternatives Considered:**
+- **Per-session improvisation** — the current implicit behaviour; works but doesn't accumulate learning across sessions or agents
+- **Third-party aggregators (Unpaywall only)** — Unpaywall alone has a ~50% hit rate; the cascade increases this significantly for multi-venue corpora
+- **Require library proxy credentials** — maximises access but requires per-institution setup; the free API cascade handles most cases without credentials
+- **Sci-Hub as default step** — higher hit rate but jurisdiction-dependent legal status; added to ROADMAP as an explicit opt-in for legal contexts only
+
+---
+
 ## Decision 007: Host routing — recommend Claude Code for complex jobs
 
 **Status:** Accepted

@@ -4,6 +4,24 @@ A narrative record of how this plugin evolves. Updated after significant work se
 
 ---
 
+## 2026-04-15 — v0.4.1: source resolution learnings from EthicHub research pass
+
+A research clipping pass for the Bridging Worlds EthicHub case study required capturing 14+ sources across a mix of Medium blog posts, academic papers (Sage, Elsevier, NBER), and grey-literature URLs. The session hit every meaningful failure mode the `clip` skill could encounter — and the learnings are now codified.
+
+**The 403 fallback cascade is now correct.** The previous docs sent every 403 straight to the Wayback Machine. The session found that standard `medium.com/<publication>/<slug>` URLs respond to WebFetch even when defuddle is blocked — because defuddle's user-agent triggers Medium's bot detection while WebFetch does not. The correct cascade is: WebFetch first → Wayback if WebFetch fails → capture_failed if both fail. Custom Medium subdomains (e.g. `dacxi.medium.com`) still block WebFetch and go straight to Wayback. This is now documented in the skill with explicit handling for both cases.
+
+**SSRN is effectively inaccessible in 2026.** Cloudflare blocks defuddle, WebFetch, curl with browser UA, and any other automated tool. Even when Unpaywall reports SSRN as an OA location, `url_for_pdf` is typically null. SSRN is now listed explicitly in the Handling Failures table with the correct guidance: `capture_failed: true`, library proxy is the only option.
+
+**OA API cascade for academic papers.** The session established a four-step cascade — Unpaywall → Semantic Scholar → EuropePMC → CrossRef — that recovers legal full-text PDFs or metadata/abstracts for most paywalled academic papers without library access. Semantic Scholar in particular returns abstracts for nearly all papers regardless of access status, which enables a useful new pattern: abstract-as-graceful-degradation. A `capture_failed: true` file with a well-captured abstract and full bibliographic metadata is meaningfully more useful than an empty stub — it can still support in-text citation of conclusions even when full text is unavailable. This pattern is now documented explicitly in the clip skill.
+
+**Sci-Hub added to roadmap as a parked idea.** For legal-context use cases (researchers in permissive jurisdictions, or papers already in personal possession), a Sci-Hub lookup step in the OA cascade would significantly increase full-text hit rates. This requires explicit user opt-in and jurisdiction awareness. Added to ROADMAP as `parked` with a clear note on the legal considerations.
+
+**New ADR: D008.** The OA API cascade is logged as an architectural decision, documenting the cascade order, the SSRN exception, the abstract-tier insight, and the Sci-Hub reasoning.
+
+No breaking changes. The clip skill's behaviour is backward-compatible — the new cascade extends the failure handling docs rather than changing the primary flow.
+
+---
+
 ## 2026-04-10 — v0.4: `transcribe` skill + `pdf-convert` removal
 
 Removed the deprecated `pdf-convert` skill after one release cycle of deprecation (deprecated in v0.3, scheduled for removal in v0.4). Its knowledge bank (19 known issues from 16 reference PDFs) and helper scripts (`pdf_postprocess.py`, `pdf_verify.py`) were migrated to `skills/convert/references/` so the `convert` skill can still reference them.
