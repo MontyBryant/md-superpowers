@@ -8,7 +8,7 @@
       "name": "mdpowers",
       "source": "./",
       "description": "Markdown superpowers for knowledge gardens — adaptive document-to-markdown conversion (PDF, docx, pptx, epub, html, image), web clipping, and transcription. Host-agnostic.",
-      "version": "0.3.2",
+      "version": "0.4.2",
       "author": {
         "name": "Monty Merlin"
       },

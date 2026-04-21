@@ -22,7 +22,8 @@ mdpowers-plugin/
 ├── ROADMAP.md                      # future directions
 ├── CHANGELOG.md                    # narrative change history
 ├── .claude-plugin/
-│   └── plugin.json                 # plugin manifest
+│   ├── plugin.json                 # plugin manifest
+│   └── marketplace.json            # self-hosted marketplace listing
 └── skills/
     ├── convert/                    # v0.3 — adaptive document-to-markdown
     │   ├── SKILL.md

@@ -4,7 +4,9 @@ A narrative record of how this plugin evolves. Updated after significant work se
 
 ---
 
-## 2026-04-21 — v0.4.2: version reconciliation
+## 2026-04-21 — v0.4.2: version reconciliation + marketplace.json fix
+
+Fixed marketplace.json version (was still 0.3.2, now 0.4.2 to match plugin.json). Added marketplace.json to the directory structure listing in CLAUDE.md.
 
 Reconciled version drift between plugin.json (which said 0.3.2), CHANGELOG (which said v0.4.2), and git commit messages (which mentioned v0.3.1 through v0.4.1 with no tags). The cause: the v0.3.2 namespace-prefix commit rolled plugin.json back without reconciling with the CHANGELOG's v0.4 series. plugin.json now correctly reads 0.4.2, matching the CHANGELOG.
 
