@@ -24,6 +24,29 @@ The plugin assumes:
 
 Everything else is detected at runtime. The plugin never assumes a specific path layout, a specific RAM ceiling, or which tools are pre-installed. See `skills/convert/references/environments.md` for the full detection procedure.
 
+## What markdown is good for — and where it breaks
+
+`mdpowers` is optimized for the common case where agents need a clean working representation of source material for retrieval, synthesis, citation, note-making, and writing. Markdown works well here because it is close to plain text while still preserving useful structure.
+
+That usually improves downstream agent performance by:
+
+- reducing formatting noise
+- preserving document hierarchy
+- making chunking and retrieval easier to control
+- improving evidence-grounded comparison and summarization
+
+This can reduce hallucination risk indirectly, because the agent has cleaner and more searchable source material to ground itself in.
+
+But markdown is not a universal extraction target. It can be the wrong primary format when the missing information is exactly what matters:
+
+- scanned or image-only documents
+- multi-column layouts with fragile reading order
+- forms where coordinates matter
+- dense financial tables
+- charts, diagrams, or visually encoded reports
+
+In those cases, `mdpowers` treats markdown as a strong working format, not a claim of perfect fidelity. The original file may still need to be inspected, and some hosts or pipelines may need layout-aware OCR or PDF-native tooling alongside the markdown output.
+
 ## Transcribe skill pathways
 
 The `/transcribe` skill supports three pathways with different host/tool requirements:

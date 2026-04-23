@@ -24,6 +24,26 @@ Markdown superpowers for knowledge gardens. A host-agnostic markdown-ingestion t
 
 The core design principle is "guides not rails": recipes and playbooks are defaults, not mandates. Agents can deviate when they have specific reasons, and deviations are named in the narration so they're visible.
 
+## Why markdown conversion helps agents
+
+For many agent workflows, the real benefit of converting documents and pages into markdown or other clean structured text is not that markdown is magical. It is that clean text usually:
+
+- removes irrelevant chrome and formatting noise
+- preserves useful semantic structure like headings, lists, tables, and links
+- makes chunking and retrieval easier
+- gives agents source material they can quote, compare, and synthesize more reliably
+
+In practice, this often reduces hallucination risk indirectly by improving grounding. The agent has cleaner evidence to work from, so search and synthesis tend to be better.
+
+But there are real tradeoffs:
+
+- conversion takes extra time up front
+- interactive conversion and review can consume tokens
+- OCR or extraction can introduce mistakes
+- markdown can lose layout, positional, or visual detail that matters for forms, scans, dense tables, and highly designed PDFs
+
+So the right claim is not "markdown always prevents hallucinations." The better claim is: clean markdown or structured text is often the best working format for retrieval, synthesis, and writing, while some source types still need layout-aware tools or the original document alongside the converted text.
+
 See [`skills/convert/SKILL.md`](skills/convert/SKILL.md) for the full design, and [`DECISIONS.md`](DECISIONS.md) for the reasoning behind this architecture.
 
 ## Install

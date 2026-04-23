@@ -4,6 +4,10 @@ A narrative record of how this plugin evolves. Updated after significant work se
 
 ---
 
+## 2026-04-23 — Clarified grounding benefits and markdown tradeoffs
+
+Refined the README and compatibility docs to make a more honest claim about why markdown conversion helps in agent workflows. The docs now say explicitly that clean markdown or structured text often improves retrieval, chunking, citation, and synthesis, which can reduce hallucination risk indirectly by improving grounding. They also now spell out the tradeoffs that were previously too implicit: conversion takes time, interactive prep can consume tokens, OCR can introduce errors, and markdown can lose layout or visual information that still matters for scans, forms, dense tables, and highly designed PDFs. This makes the repo's positioning more nuanced and more credible for people using `mdpowers` in serious research or document-heavy workflows.
+
 ## 2026-04-22 — v0.4.3: AGENTS.md canon + Codex global install path
 
 Made the repo scaffold match the portability story the skills were already trying to tell. `AGENTS.md` is now the canonical instruction file and `CLAUDE.md` has been reduced to a compatibility wrapper, which brings the repo in line with the broader compatibility-layer pattern used elsewhere in montymerlinHQ. More importantly, Codex is now treated as a first-class host rather than an afterthought: the docs explain the difference between Claude plugin packaging and Codex global skills, the skills use a portable `MDPOWERS_ROOT` resolution convention instead of assuming `${CLAUDE_PLUGIN_ROOT}`, and two new scripts (`scripts/install_codex_skills.sh`, `scripts/update_codex_skills.sh`) establish a repeatable GitHub-backed install/update flow via `~/.codex/vendor_imports/repos/mdpowers-plugin`. Current-facing skill text and compatibility docs were swept so workspace conventions prefer `AGENTS.md`, and host guidance now talks about full local terminal hosts rather than only Claude Code where the distinction matters. This is a compatibility release, not a methodology rewrite, so it lands as v0.4.3.
