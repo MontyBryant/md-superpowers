@@ -4,6 +4,22 @@ A narrative record of how this plugin evolves. Updated after significant work se
 
 ---
 
+## 2026-04-27 — P2 bug fixes: broken method names, venv probe, openai dep, --speakers consistency
+
+Four bugs confirmed from a live P2 transcription session and fixed:
+
+1. **`whisperx_local.py` broken method calls (critical).** The runner called `ytdlp_helpers.get_video_metadata` and `errors.TranscriptionError` — neither of which exist. The actual exports are `get_video_info` and `TranscribeError`. P2 failed on first invocation with an `AttributeError`. Fixed with two one-line renames.
+
+2. **`probe.py` venv detection.** `probe_environment()` used `importlib.util.find_spec()` against whatever Python invoked the script — typically system Python, which doesn't have whisperx/pyannote/torch. Probe falsely reported P2 deps as missing even on machines where they were correctly installed in a project venv. Fixed by adding `_find_venv_python()` that scans `.mdpowers-venv`, `.venv-whisperx`, `.venv` (in preference order) and uses that Python for package checks. Added `checked_python` to `EnvProbe` and probe report output so the session can see which Python was actually consulted.
+
+3. **`openai` missing from `install_path2.sh`.** The script assumed Tier 1 deps (incl. `openai`) were already installed, but someone setting up a clean P2 venv via only this script would hit `ModuleNotFoundError: openai` on the first LLM step. Added `openai` explicitly to the pip install list.
+
+4. **`--speakers` argument inconsistency.** `whisperx_local.py` used `nargs="+"` (space-separated: `--speakers Alice "Bob Smith"`) while `tools/diarize.py` uses a single comma-separated string (`--speakers "Alice,Bob Smith"`). Standardised the plugin runner to comma-separated, consistent with diarize.py. Names with internal spaces no longer require quoting gymnastics.
+
+No pathway logic changed. No breaking changes to the pipeline itself — only the CLI argument parsing and the two internal method name references.
+
+---
+
 ## 2026-04-27 — Plugin audit pass + skill name fix
 
 Audited the plugin against `/create-cowork-plugin` standards. Fixed the namespaced skill `name:` frontmatter bug across all 3 SKILL.md files (`mdpowers:clip` → `clip`, etc.). Expanded `.gitignore` from minimal (5 patterns) to full portfolio template covering `_dist/`, `*.plugin`, `node_modules/`, `.venv/`, editor noise, worktrees.

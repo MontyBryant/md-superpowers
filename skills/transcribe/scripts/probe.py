@@ -10,6 +10,7 @@ import argparse
 import importlib.util
 import os
 import shutil
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -56,6 +57,7 @@ class EnvProbe:
     torch: bool
     openai_api_key: bool
     hf_token: bool
+    checked_python: str  # which Python was used for package checks
 
 
 @dataclass
@@ -190,25 +192,87 @@ def probe_source(
 # ---------------------------------------------------------------------------
 
 
-def probe_environment() -> EnvProbe:
+# Venv names to scan for P2 packages, in preference order.
+_VENV_NAMES = (".mdpowers-venv", ".venv-whisperx", ".venv")
+
+
+def _find_venv_python(cwd: Optional[Path] = None) -> Optional[str]:
+    """Find the best Python in a project venv for package checks.
+
+    Scans standard venv names relative to cwd. Returns the first python
+    binary found, or None if no venv exists.
+
+    Args:
+        cwd: Directory to search from. Defaults to cwd.
+
+    Returns:
+        Path to venv python binary, or None.
+    """
+    if cwd is None:
+        cwd = Path.cwd()
+    for name in _VENV_NAMES:
+        candidate = cwd / name / "bin" / "python"
+        if candidate.is_file():
+            return str(candidate)
+    return None
+
+
+def _package_available(package: str, python: str) -> bool:
+    """Check if a package is importable in a given Python binary.
+
+    Uses the current interpreter if python matches sys.executable,
+    otherwise delegates to a subprocess to avoid interpreter mismatch.
+
+    Args:
+        package: Package name to check.
+        python: Path to Python binary.
+
+    Returns:
+        True if the package can be imported.
+    """
+    if python == sys.executable:
+        return importlib.util.find_spec(package) is not None
+    try:
+        result = subprocess.run(
+            [python, "-c", f"import {package}"],
+            capture_output=True,
+            timeout=10,
+        )
+        return result.returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+def probe_environment(cwd: Optional[Path] = None) -> EnvProbe:
     """Check availability of tools and environment variables.
 
     Checks:
     - yt-dlp and ffmpeg via shutil.which()
-    - Python packages (whisperx, pyannote, torch) via importlib.util.find_spec()
+    - Python packages (whisperx, pyannote, torch) first in the best
+      available project venv (.mdpowers-venv, .venv-whisperx, .venv),
+      falling back to sys.executable if no venv is found
     - OPENAI_API_KEY and HF_TOKEN env vars
 
+    Reports which Python was used for package checks in checked_python.
+
+    Args:
+        cwd: Working directory for venv discovery. Defaults to cwd.
+
     Returns:
-        EnvProbe with boolean flags.
+        EnvProbe with boolean flags and checked_python path.
     """
     # Tools
     yt_dlp = shutil.which("yt-dlp") is not None
     ffmpeg = shutil.which("ffmpeg") is not None
 
+    # Resolve best Python for package checks
+    venv_python = _find_venv_python(cwd)
+    checked_python = venv_python if venv_python else sys.executable
+
     # Python packages
-    whisperx = importlib.util.find_spec("whisperx") is not None
-    pyannote = importlib.util.find_spec("pyannote") is not None
-    torch = importlib.util.find_spec("torch") is not None
+    whisperx = _package_available("whisperx", checked_python)
+    pyannote = _package_available("pyannote", checked_python)
+    torch = _package_available("torch", checked_python)
 
     # Environment variables
     openai_api_key = bool(os.environ.get("OPENAI_API_KEY"))
@@ -222,6 +286,7 @@ def probe_environment() -> EnvProbe:
         torch=torch,
         openai_api_key=openai_api_key,
         hf_token=hf_token,
+        checked_python=checked_python,
     )
 
 
@@ -329,7 +394,7 @@ def run_probe(
         )
 
     # Probe environment
-    env = probe_environment()
+    env = probe_environment(cwd=cwd)
 
     # Probe vocabulary
     vocab = probe_vocabulary(cwd=cwd)
@@ -380,6 +445,7 @@ def format_probe_report(report: ProbeReport) -> str:
 
     # Environment
     lines.append("Environment:")
+    lines.append(f"  - Python checked: {report.env.checked_python}")
     check = "✓" if report.env.yt_dlp else "✗"
     lines.append(f"  - yt-dlp: {check}")
     check = "✓" if report.env.ffmpeg else "✗"

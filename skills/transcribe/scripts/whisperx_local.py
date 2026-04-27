@@ -331,7 +331,7 @@ def run(
         Path to generated markdown file
 
     Raises:
-        errors.TranscriptionError: On fatal pipeline errors
+        errors.TranscribeError: On fatal pipeline errors
     """
     workspace_root = Path.cwd()
     out_dir = Path(out_dir)
@@ -342,7 +342,7 @@ def run(
     try:
         # Step 1: Get video metadata and cache directory
         logger.info("Step 1: Fetching video metadata...")
-        metadata = ytdlp_helpers.get_video_metadata(source, cookies_file=cookies_file, cookies_browser=cookies_browser)
+        metadata = ytdlp_helpers.get_video_info(source, cookies_file=cookies_file, cookies_browser=cookies_browser)
         video_id = metadata["id"]
         cache_dir = _cache_dir(workspace_root, video_id)
         cache_dir.mkdir(parents=True, exist_ok=True)
@@ -491,7 +491,7 @@ def run(
     except Exception as e:
         logger.error(f"Pipeline failed: {e}")
         logger.error(traceback.format_exc())
-        raise errors.TranscriptionError(f"Path 2 pipeline failed: {e}") from e
+        raise errors.TranscribeError(f"Path 2 pipeline failed: {e}") from e
 
 
 # ============================================================================
@@ -507,7 +507,7 @@ def main():
         python whisperx_local.py "https://www.youtube.com/watch?v=..." \
             --out /path/to/output \
             --hf-token YOUR_HF_TOKEN \
-            --speakers Alice Bob
+            --speakers "Alice,Bob Smith"
     """
     parser = argparse.ArgumentParser(
         description="WhisperX local transcription pipeline (Path 2) with diarization and speaker ID"
@@ -518,7 +518,7 @@ def main():
     parser.add_argument("--hf-token", required=True, help="Hugging Face token (for pyannote)")
     parser.add_argument("--vocab-overlay", type=Path, help="Optional vocabulary override file")
     parser.add_argument("--skip-vocab-review", action="store_true", help="Skip LLM vocab candidate discovery")
-    parser.add_argument("--speakers", nargs="+", help="Known speaker names in order (e.g., Alice Bob)")
+    parser.add_argument("--speakers", help="Comma-separated speaker names in order (e.g., 'Alice,Bob Smith')")
     parser.add_argument("--num-speakers", type=int, help="Hint for number of speakers")
     parser.add_argument("--cookies-file", help="Path to yt-dlp cookies file")
     parser.add_argument("--cookies-from-browser", help="Extract cookies from browser (e.g., firefox)")
@@ -543,7 +543,7 @@ def main():
             hf_token=args.hf_token,
             vocab_overlay=args.vocab_overlay,
             skip_vocab_review=args.skip_vocab_review,
-            known_speakers=args.speakers,
+            known_speakers=[s.strip() for s in args.speakers.split(",")] if args.speakers else None,
             num_speakers=args.num_speakers,
             cookies_file=args.cookies_file,
             cookies_browser=args.cookies_from_browser,

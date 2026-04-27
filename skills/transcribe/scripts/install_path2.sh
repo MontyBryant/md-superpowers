@@ -22,7 +22,7 @@ echo ""
 
 # Install Python packages
 echo "--- Installing Python packages ---"
-echo "This includes: whisperx, faster-whisper, pyannote.audio, torch, torchaudio, huggingface_hub, nltk"
+echo "This includes: whisperx, faster-whisper, pyannote.audio, torch, torchaudio, huggingface_hub, nltk, openai"
 echo ""
 
 pip install --break-system-packages \
@@ -33,6 +33,7 @@ pip install --break-system-packages \
     torchaudio \
     huggingface_hub \
     nltk \
+    openai \
     2>&1 || {
         echo ""
         echo "ERROR: pip install failed. Common fixes:"
